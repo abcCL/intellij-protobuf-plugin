@@ -1,1 +1,1 @@
-rootProject.name = "idea-protobuf-plugin"
+rootProject.name = "idea-protox"
