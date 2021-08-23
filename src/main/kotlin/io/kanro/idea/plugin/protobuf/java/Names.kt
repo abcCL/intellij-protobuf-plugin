@@ -257,11 +257,11 @@ fun ProtobufServiceStub.fullCoroutineStubName(): QualifiedName {
 }
 
 fun ProtobufRpcDefinition.methodName(): String? {
-    return name()?.toCamelCase()
+    return name()
 }
 
 fun ProtobufRpcStub.methodName(): String? {
-    return name()?.toCamelCase()
+    return name()
 }
 
 fun ProtobufEnumDefinition.className(): String? {

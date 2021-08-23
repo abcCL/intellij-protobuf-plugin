@@ -103,7 +103,7 @@ class ProtobufLineMarkerProvider : RelatedItemLineMarkerProvider() {
         for (javaFile in psiJavaFile) {
             val clazzName = javaFile.packageName + "." + javaFile.name
             val psiClass = findJavaClass(clazzName.substring(0, clazzName.length - 5), element.project)
-            psiClass?.annotations ?: break
+            psiClass?.annotations ?: continue
             for (an in psiClass.annotations) {
                 if (an.qualifiedName.equals(ostrichService)) {
                     if (an.findAttributeValue("value")!!
