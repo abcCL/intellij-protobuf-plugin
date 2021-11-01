@@ -110,7 +110,7 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
             an.qualifiedName ?: continue
             when (an.qualifiedName.toString()) {
                 grpcService -> {
-                    if (!clazz.javaPsi.isInheritor(bindableService, true)) return null
+                    if (!clazz.javaPsi.isInheritor(bindableService, true)) continue;
                     return CachedValuesManager.getCachedValue(sourcePsi) {
                         val scope = FileResolver.searchScope(sourcePsi)
                         for (it in clazz.uastSuperTypes) {
