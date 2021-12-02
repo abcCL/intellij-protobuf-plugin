@@ -9,6 +9,10 @@
     <depends>com.intellij.modules.lang</depends>
     <depends optional="true" config-file="io.kanro.idea.plugin.protobuf-java.xml">com.intellij.modules.java</depends>
     <depends optional="true" config-file="io.kanro.idea.plugin.protobuf-sisyphus.xml">org.jetbrains.kotlin</depends>
+    <depends optional="true" config-file="io.kanro.idea.plugin.protobuf-microservices.xml">
+        com.intellij.modules.microservices
+    </depends>
+    <depends optional="true" config-file="io.kanro.idea.plugin.protobuf-go.xml">org.jetbrains.plugins.go</depends>
 
     <extensionPoints>
         <extensionPoint
@@ -38,6 +42,8 @@
                       implementation="io.kanro.idea.plugin.protobuf.lang.file.LibraryProtobufFileResolver"/>
         <fileResolver id="settings"
                       implementation="io.kanro.idea.plugin.protobuf.lang.file.ImportRootsFileResolver"/>
+        <fileResolver id="decompile"
+                      implementation="io.kanro.idea.plugin.protobuf.decompile.DecompiledFileResolver"/>
         <symbolReferenceProvider
                 implementation="io.kanro.idea.plugin.protobuf.aip.reference.contributor.ProtobufTypeNameInStringProvider"/>
         <stubExternalProvider
