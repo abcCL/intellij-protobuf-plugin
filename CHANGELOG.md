@@ -4,9 +4,16 @@
 
 ## [Unreleased]
 
+## [1.4.5]
+### Fixed
+- Fix recursive importing for auto import
+
+### Changed
+- Target to intellij 2021.3
+
 ## [1.4.4]
 ### Added
-- :sparkles: Support mark root path as non-common root
+- Support mark root path as non-common root
 
 ## [1.4.3]
 ### Added
