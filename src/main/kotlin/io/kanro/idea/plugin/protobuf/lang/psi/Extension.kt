@@ -95,21 +95,45 @@ inline fun <reified T : ProtobufScopeItem> ProtobufScopeItemContainer.walkItem(b
 }
 
 inline fun <reified T : PsiElement> PsiElement.next(): T? {
-    var next: PsiElement? = this.nextSibling ?: return null
-    while (next != null) {
-        if (next is T) return next
-        next = next.nextSibling
+    return next {
+        it is T
+    } as? T
+}
+
+inline fun <reified T : PsiElement> PsiElement.prev(): T? {
+    return prev {
+        it is T
+    } as? T
+}
+
+fun PsiElement.next(condition: (PsiElement) -> Boolean): PsiElement? {
+    forEachNext {
+        if (condition(it)) return it
     }
     return null
 }
 
-inline fun <reified T : PsiElement> PsiElement.prev(): T? {
-    var prev: PsiElement? = this.prevSibling ?: return null
-    while (prev != null) {
-        if (prev is T) return prev
-        prev = prev.prevSibling
+fun PsiElement.prev(condition: (PsiElement) -> Boolean): PsiElement? {
+    forEachPrev {
+        if (condition(it)) return it
     }
     return null
+}
+
+inline fun PsiElement.forEachNext(block: (PsiElement) -> Unit) {
+    var next: PsiElement? = this.nextSibling ?: return
+    while (next != null) {
+        block(next)
+        next = next.nextSibling
+    }
+}
+
+inline fun PsiElement.forEachPrev(block: (PsiElement) -> Unit) {
+    var prev: PsiElement? = this.prevSibling ?: return
+    while (prev != null) {
+        block(prev)
+        prev = prev.prevSibling
+    }
 }
 
 fun ProtobufImportStatement.public(): Boolean {
@@ -288,6 +312,11 @@ fun ProtobufBooleanValue.value(): Boolean {
     return textMatches("true")
 }
 
+fun ProtobufConstant.stringValue(): String? {
+    if (stringValueList.isEmpty()) return null
+    return stringValueList.joinToString("") { it.value() ?: "" }
+}
+
 fun ProtobufRpcIO.stream(): Boolean {
     this.walkChildren<PsiElement>(false) {
         if (it.elementType is ProtobufKeywordToken && it.textMatches("stream")) {
@@ -299,7 +328,7 @@ fun ProtobufRpcIO.stream(): Boolean {
 
 fun ProtobufFieldLike.jsonName(): String? {
     if (this is ProtobufOptionOwner) {
-        options("json_name").lastOrNull()?.value()?.stringValue?.value()?.let {
+        options("json_name").lastOrNull()?.value()?.stringValue()?.let {
             return it
         }
     }

@@ -33,6 +33,11 @@ object Icons {
     var PROCEDURE: Icon = loadIcon("procedure.svg")
     var PROTO_DECOMPILE: Icon = loadIcon("proto_decompile.svg")
 
+    var ARRANGE_FROM_MIN: Icon = loadIcon("arrangeFromMin.svg")
+    var ARRANGE_TO_MAX: Icon = loadIcon("arrangeToMax.svg")
+
+    var BUF_LOGO: Icon = loadIcon("buf.svg")
+
     private fun loadIcon(name: String): Icon {
         return IconLoader.getIcon("/io/kanro/idea/plugin/protobuf/icon/$name", Icons::class.java)
     }

@@ -3,6 +3,34 @@
 # IntelliJ Protobuf Language Plugin Changelog
 
 ## [Unreleased]
+### Fixed
+- Fix buf toolwindow tree cell rendering in IU-2021.3.3
+
+## [1.5.10]
+### Fixed
+- Fix protobuf settings not being saved.
+
+## [1.5.0]
+### Added
+- Basically code completion and documentation for buf configuration files.
+- Auto config protobuf import roots from buf.yaml and buf.work.yaml, it support locked deps and workspace local module.
+- Pre-provided well-known protos.
+- Buf lint annotator.
+- Run buf command configuration.
+- Buf tool window support.
+
+## [1.4.8]
+### Added
+- Add more rule for code formatting
+- Add arrange field numbers actions
+
+## [1.4.7]
+### Fixed
+- Fix sub message resolving with cross file
+
+## [1.4.6]
+### Added
+- Support repeated string value for constant
 
 ## [1.4.5]
 ### Fixed
