@@ -55,33 +55,14 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
     fun findServiceProtobufDefinition(clazz: UClass): ProtobufServiceDefinition? {
         val sourceClazz = clazz.sourcePsi ?: return null
         val bindableService = sourceClazz.findJavaClass(javaImplBase) ?: return null
-        if (!clazz.javaPsi.isInheritor(bindableService, true)) return null
 
-        return CachedValuesManager.getCachedValue(sourceClazz) {
-            val scope = ProtobufRootResolver.searchScope(sourceClazz)
-            for (it in clazz.uastSuperTypes) {
-                val qualifiedName = it.getQualifiedName() ?: continue
-                val element = StubIndex.getElements(
-                    JavaNameIndex.key,
-                    qualifiedName,
-                    sourceClazz.project,
-                    scope,
-                    ProtobufElement::class.java
-                ).firstIsInstanceOrNull<ProtobufServiceDefinition>()
-
-                if (element != null) {
-                    return@getCachedValue CachedValueProvider.Result.create(element, sourceClazz)
-                }
-            }
-            return@getCachedValue CachedValueProvider.Result.create(null, sourceClazz)
-        }
         for (an in clazz.uAnnotations) {
             an.qualifiedName ?: continue
             when (an.qualifiedName.toString()) {
                 grpcService -> {
                     if (!clazz.javaPsi.isInheritor(bindableService, true)) return null
                     return CachedValuesManager.getCachedValue(sourceClazz) {
-                        val scope = FileResolver.searchScope(sourceClazz)
+                        val scope = ProtobufRootResolver.searchScope(sourceClazz)
                         for (it in clazz.uastSuperTypes) {
                             val qualifiedName = it.getQualifiedName() ?: continue
                             val element = findServiceElement(qualifiedName, sourceClazz.project, scope)
@@ -97,7 +78,7 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
                             ?: return null
                     if (!parentClazz.isInheritor(bindableService, true)) return null
                     return CachedValuesManager.getCachedValue(sourceClazz) {
-                        val scope = FileResolver.searchScope(sourceClazz)
+                        val scope = ProtobufRootResolver.searchScope(sourceClazz)
                         val qualifiedName = parentClazz.qualifiedName
                                 ?: return@getCachedValue CachedValueProvider.Result.create(null, sourceClazz)
                         val element = findServiceElement(qualifiedName, sourceClazz.project, scope)
@@ -126,32 +107,14 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
         val sourcePsi = method.sourcePsi ?: return null
         val clazz = method.uastParent as? UClass ?: return null
         val bindableService = sourcePsi.findJavaClass(javaImplBase) ?: return null
-        if (!clazz.javaPsi.isInheritor(bindableService, true)) return null
 
-        return CachedValuesManager.getCachedValue(sourcePsi) {
-            val scope = ProtobufRootResolver.searchScope(sourcePsi)
-            for (it in clazz.uastSuperTypes) {
-                val methodName = "${it.getQualifiedName()}.${method.name}"
-                val element = StubIndex.getElements(
-                    JavaNameIndex.key,
-                    methodName,
-                    sourcePsi.project,
-                    scope,
-                    ProtobufElement::class.java
-                ).firstIsInstanceOrNull<ProtobufRpcDefinition>()
-                if (element != null) {
-                    return@getCachedValue CachedValueProvider.Result.create(element, sourcePsi)
-                }
-            }
-            return@getCachedValue CachedValueProvider.Result.create(null, sourcePsi)
-        }
         for (an in clazz.uAnnotations) {
             an.qualifiedName ?: continue
             when (an.qualifiedName.toString()) {
                 grpcService -> {
                     if (!clazz.javaPsi.isInheritor(bindableService, true)) continue;
                     return CachedValuesManager.getCachedValue(sourcePsi) {
-                        val scope = FileResolver.searchScope(sourcePsi)
+                        val scope = ProtobufRootResolver.searchScope(sourcePsi)
                         for (it in clazz.uastSuperTypes) {
                             val methodName = "${it.getQualifiedName()}.${method.name}"
                             val element = findMethodElement(methodName, sourcePsi.project, scope)
@@ -167,7 +130,7 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
                             ?: return null
                     if (!parentClazz.isInheritor(bindableService, true)) return null
                     return CachedValuesManager.getCachedValue(sourcePsi) {
-                        val scope = FileResolver.searchScope(sourcePsi)
+                        val scope = ProtobufRootResolver.searchScope(sourcePsi)
                         val methodName = "${parentClazz.qualifiedName}.${method.name}"
                         val element = findMethodElement(methodName, sourcePsi.project, scope)
                         if (element != null) {
