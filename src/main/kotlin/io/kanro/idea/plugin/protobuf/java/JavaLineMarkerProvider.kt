@@ -52,6 +52,7 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     val grpcService = "com.ypshengxian.ostrich.springboot.annotations.GrpcService"
     val ostrichService = "com.ypshengxian.ostrich.springboot.annotations.OstrichService"
+    //查找proto上service定义
     fun findServiceProtobufDefinition(clazz: UClass): ProtobufServiceDefinition? {
         val sourceClazz = clazz.sourcePsi ?: return null
         val bindableService = sourceClazz.findJavaClass(javaImplBase) ?: return null
@@ -103,6 +104,7 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
         ).firstIsInstanceOrNull<ProtobufServiceDefinition>()
     }
 
+    //查找proto上rpc method的定义
     fun findMethodProtobufDefinition(method: UMethod): ProtobufElement? {
         val sourcePsi = method.sourcePsi ?: return null
         val clazz = method.uastParent as? UClass ?: return null
