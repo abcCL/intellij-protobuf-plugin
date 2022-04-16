@@ -95,13 +95,15 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     fun findServiceElement(name: String, project: Project, scope: GlobalSearchScope): ProtobufServiceDefinition? {
-        return StubIndex.getElements(
-                JavaNameIndex.key,
-                name,
-                project,
-                scope,
-                ProtobufElement::class.java
-        ).firstIsInstanceOrNull<ProtobufServiceDefinition>()
+        val elements = StubIndex.getElements(
+            JavaNameIndex.key,
+            name,
+            project,
+            scope,
+            ProtobufElement::class.java
+        )
+
+        return elements.firstIsInstanceOrNull<ProtobufServiceDefinition>()
     }
 
     //查找proto上rpc method的定义
@@ -147,12 +149,14 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     fun findMethodElement(name: String, project: Project, scope: GlobalSearchScope): ProtobufRpcDefinition? {
-        return StubIndex.getElements(
-                JavaNameIndex.key,
-                name,
-                project,
-                scope,
-                ProtobufElement::class.java
-        ).firstIsInstanceOrNull<ProtobufRpcDefinition>()
+        val elements = StubIndex.getElements(
+            JavaNameIndex.key,
+            name,
+            project,
+            scope,
+            ProtobufElement::class.java
+        )
+
+        return elements.firstIsInstanceOrNull<ProtobufRpcDefinition>()
     }
 }
