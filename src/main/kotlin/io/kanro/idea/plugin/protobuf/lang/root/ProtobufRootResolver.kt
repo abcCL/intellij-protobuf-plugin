@@ -59,7 +59,8 @@ object ProtobufRootResolver {
     }
 
     fun searchScope(context: PsiElement): GlobalSearchScope {
-        return GlobalSearchScope.filesScope(context.project, getAvailableRoots(context).toList())
+//        return GlobalSearchScope.filesScope(context.project, getAvailableRoots(context).toList())
+        return GlobalSearchScope.projectScope(context.project)
     }
 
     private fun findFile(path: String, roots: Iterable<VirtualFile>): Iterable<VirtualFile> {
