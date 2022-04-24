@@ -3,6 +3,7 @@ package io.kanro.idea.plugin.protobuf.java
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -15,6 +16,7 @@ import io.kanro.idea.plugin.protobuf.lang.psi.ProtobufRpcDefinition
 import io.kanro.idea.plugin.protobuf.lang.psi.ProtobufServiceDefinition
 import io.kanro.idea.plugin.protobuf.lang.psi.primitive.ProtobufElement
 import io.kanro.idea.plugin.protobuf.lang.root.ProtobufRootResolver
+import org.apache.log4j.Level
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UIdentifier
@@ -22,6 +24,11 @@ import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
 
 class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
+
+    private val logger: Logger = Logger.getInstance(
+        JavaLineMarkerProvider::class.java
+    )
+
     override fun collectNavigationMarkers(
         element: PsiElement,
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
@@ -52,11 +59,11 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     val grpcService = "com.ypshengxian.ostrich.springboot.annotations.GrpcService"
     val ostrichService = "com.ypshengxian.ostrich.springboot.annotations.OstrichService"
+
     //查找proto上service定义
     fun findServiceProtobufDefinition(clazz: UClass): ProtobufServiceDefinition? {
         val sourceClazz = clazz.sourcePsi ?: return null
         val bindableService = sourceClazz.findJavaClass(javaImplBase) ?: return null
-
         for (an in clazz.uAnnotations) {
             an.qualifiedName ?: continue
             when (an.qualifiedName.toString()) {
@@ -75,13 +82,14 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
                     }
                 }
                 ostrichService -> {
-                    val parentClazz = sourceClazz.findJavaClass(QualifiedName.fromDottedString(an.attributeValues.get(0).expression.toString()))
+                    val parentClazz =
+                        sourceClazz.findJavaClass(QualifiedName.fromDottedString(an.attributeValues.get(0).expression.toString()))
                             ?: return null
                     if (!parentClazz.isInheritor(bindableService, true)) return null
                     return CachedValuesManager.getCachedValue(sourceClazz) {
                         val scope = ProtobufRootResolver.searchScope(sourceClazz)
                         val qualifiedName = parentClazz.qualifiedName
-                                ?: return@getCachedValue CachedValueProvider.Result.create(null, sourceClazz)
+                            ?: return@getCachedValue CachedValueProvider.Result.create(null, sourceClazz)
                         val element = findServiceElement(qualifiedName, sourceClazz.project, scope)
                         if (element != null) {
                             return@getCachedValue CachedValueProvider.Result.create(element, sourceClazz)
@@ -102,7 +110,7 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
             scope,
             ProtobufElement::class.java
         )
-
+        logger.info("protox find matched class " + name + ",size " + elements.size)
         return elements.firstIsInstanceOrNull<ProtobufServiceDefinition>()
     }
 
@@ -117,6 +125,7 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
             when (an.qualifiedName.toString()) {
                 grpcService -> {
                     if (!clazz.javaPsi.isInheritor(bindableService, true)) continue;
+
                     return CachedValuesManager.getCachedValue(sourcePsi) {
                         val scope = ProtobufRootResolver.searchScope(sourcePsi)
                         for (it in clazz.uastSuperTypes) {
@@ -130,7 +139,8 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
                     }
                 }
                 ostrichService -> {
-                    val parentClazz = clazz.findJavaClass(QualifiedName.fromDottedString(an.attributeValues.get(0).expression.toString()))
+                    val parentClazz =
+                        clazz.findJavaClass(QualifiedName.fromDottedString(an.attributeValues.get(0).expression.toString()))
                             ?: return null
                     if (!parentClazz.isInheritor(bindableService, true)) return null
                     return CachedValuesManager.getCachedValue(sourcePsi) {
@@ -156,7 +166,7 @@ class JavaLineMarkerProvider : RelatedItemLineMarkerProvider() {
             scope,
             ProtobufElement::class.java
         )
-
+        logger.info("protox find matched method " + name + ",size " + elements.size)
         return elements.firstIsInstanceOrNull<ProtobufRpcDefinition>()
     }
 }

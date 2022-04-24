@@ -18,8 +18,8 @@ import io.kanro.idea.plugin.protobuf.lang.psi.ProtobufServiceDefinition
 
 class ProtobufLineMarkerProvider : RelatedItemLineMarkerProvider() {
     override fun collectNavigationMarkers(
-            element: PsiElement,
-            result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
+        element: PsiElement,
+        result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
     ) {
         val identifier = element as? ProtobufIdentifier ?: return
         if (!isJava(element)) return
@@ -29,47 +29,57 @@ class ProtobufLineMarkerProvider : RelatedItemLineMarkerProvider() {
                 val parent = owner.parent.parent
                 if (parent is ProtobufServiceDefinition) {
                     val implBaseName = parent.fullImplBaseName()?.toString()
-                    val ostrichClass = getOstrichClass(element, implBaseName)
+                    val ostrichClass = getOstrichAnnotationClass(element, implBaseName)
                     val methodName = owner.methodName()
                     val resultMethod = mutableListOf<PsiMethod>()
                     if (ostrichClass.isNotEmpty()) {
-                        val allMethods = ostrichClass.get(0).allMethods
+                        val allMethods = ostrichClass[0].allMethods
                         for (method in allMethods) {
-                            if (method.name.equals(methodName)) {
+                            if (method.name == methodName) {
+                                resultMethod.add(method)
+                            }
+                        }
+                    }
+                    val grpcClass = getGrpcAnnotiationClass(element, implBaseName)
+                    if (grpcClass.isNotEmpty()) {
+                        val allMethods = grpcClass[0].methods
+                        for (method in allMethods) {
+                            if (method.name == methodName) {
                                 resultMethod.add(method)
                             }
                         }
                     }
                     if (resultMethod.isNotEmpty()) {
                         val builder: NavigationGutterIconBuilder<PsiElement> =
-                                NavigationGutterIconBuilder.create(Icons.IMPLEMENTED_RPC)
-                                        .setTargets(resultMethod)
-                                        .setTooltipText("Implemented")
+                            NavigationGutterIconBuilder.create(Icons.IMPLEMENTED_RPC)
+                                .setTargets(resultMethod)
+                                .setTooltipText("Implemented")
                         result.add(builder.createLineMarkerInfo(element))
                         return
                     }
                 }
-                val methods = owner.toImplBaseMethod()?.let {
-                    OverridingMethodsSearch.search(it).toList()
-                } ?: listOf()
-                val ktMethods = owner.toCoroutineImplBaseMethod()?.let {
-                    OverridingMethodsSearch.search(it).toList()
-                } ?: listOf()
-                if (methods.isEmpty() && ktMethods.isEmpty()) return
-                val builder: NavigationGutterIconBuilder<PsiElement> =
-                        NavigationGutterIconBuilder.create(Icons.IMPLEMENTED_RPC)
-                                .setTargets(methods + ktMethods)
-                                .setTooltipText("Implemented")
-                result.add(builder.createLineMarkerInfo(element))
+
+//                val methods = owner.toImplBaseMethod()?.let {
+//                    OverridingMethodsSearch.search(it).toList()
+//                } ?: listOf()
+//                val ktMethods = owner.toCoroutineImplBaseMethod()?.let {
+//                    OverridingMethodsSearch.search(it).toList()
+//                } ?: listOf()
+//                if (methods.isEmpty() && ktMethods.isEmpty()) return
+//                val builder: NavigationGutterIconBuilder<PsiElement> =
+//                    NavigationGutterIconBuilder.create(Icons.IMPLEMENTED_RPC)
+//                        .setTargets(methods + ktMethods)
+//                        .setTooltipText("Implemented")
+//                result.add(builder.createLineMarkerInfo(element))
             }
             is ProtobufServiceDefinition -> {
                 val implBaseName = owner.fullImplBaseName()?.toString()
-                val ostrichClass = getOstrichClass(element, implBaseName)
+                val ostrichClass = getOstrichAnnotationClass(element, implBaseName)
                 if (ostrichClass.isNotEmpty()) {
                     val builder: NavigationGutterIconBuilder<PsiElement> =
-                            NavigationGutterIconBuilder.create(Icons.IMPLEMENTED_SERVICE)
-                                    .setTargets(ostrichClass)
-                                    .setTooltipText("Implemented")
+                        NavigationGutterIconBuilder.create(Icons.IMPLEMENTED_SERVICE)
+                            .setTargets(ostrichClass)
+                            .setTooltipText("Implemented")
                     result.add(builder.createLineMarkerInfo(element))
                     return
                 }
@@ -81,9 +91,9 @@ class ProtobufLineMarkerProvider : RelatedItemLineMarkerProvider() {
                 } ?: listOf()
                 if (apis.isEmpty() && ktApis.isEmpty()) return
                 val builder: NavigationGutterIconBuilder<PsiElement> =
-                        NavigationGutterIconBuilder.create(Icons.IMPLEMENTED_SERVICE)
-                                .setTargets(apis + ktApis)
-                                .setTooltipText("Implemented")
+                    NavigationGutterIconBuilder.create(Icons.IMPLEMENTED_SERVICE)
+                        .setTargets(apis + ktApis)
+                        .setTooltipText("Implemented")
                 result.add(builder.createLineMarkerInfo(element))
             }
         }
@@ -91,7 +101,7 @@ class ProtobufLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     val grpcService = "com.ypshengxian.ostrich.springboot.annotations.GrpcService"
     val ostrichService = "com.ypshengxian.ostrich.springboot.annotations.OstrichService"
-    fun getOstrichClass(element: PsiElement, baseName: String): List<PsiClass> {
+    fun getOstrichAnnotationClass(element: PsiElement, baseName: String): List<PsiClass> {
         val files = FileTypeIndex.getFiles(JavaFileType.INSTANCE, GlobalSearchScope.projectScope(element.project))
         val psiJavaFile = mutableListOf<PsiJavaFileImpl>()
         for (file in files) {
@@ -107,9 +117,37 @@ class ProtobufLineMarkerProvider : RelatedItemLineMarkerProvider() {
             for (an in psiClass.annotations) {
                 if (an.qualifiedName.equals(ostrichService)) {
                     if (an.findAttributeValue("value")!!
-                                    .firstChild.firstChild.reference!!
-                                    .canonicalText.equals(baseName))
+                            .firstChild.firstChild.reference!!
+                            .canonicalText.equals(baseName)
+                    )
                         return listOf<PsiClass>(psiClass)
+                }
+            }
+        }
+        return emptyList()
+    }
+
+    fun getGrpcAnnotiationClass(element: PsiElement, baseName: String): List<PsiClass> {
+        val files = FileTypeIndex.getFiles(JavaFileType.INSTANCE, GlobalSearchScope.projectScope(element.project))
+        val psiJavaFile = mutableListOf<PsiJavaFileImpl>()
+        for (file in files) {
+            val psiFile = PsiManager.getInstance(element.project).findFile(file)
+            if (psiFile is PsiJavaFileImpl) {
+                psiJavaFile.add(psiFile)
+            }
+        }
+        for (javaFile in psiJavaFile) {
+            val clazzName = javaFile.packageName + "." + javaFile.name
+            val psiClass = findJavaClass(clazzName.substring(0, clazzName.length - 5), element.project)
+            psiClass?.annotations ?: continue
+            for (an in psiClass.annotations) {
+                if (an.qualifiedName.equals(grpcService)) {
+                    val extendsList = psiClass.extendsListTypes
+                    for (psiClassType in extendsList) {
+                        if (baseName.endsWith(psiClassType.className)) {
+                            return listOf<PsiClass>(psiClass)
+                        }
+                    }
                 }
             }
         }

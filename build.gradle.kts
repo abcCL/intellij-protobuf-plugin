@@ -109,6 +109,11 @@ tasks {
 
     runIde {
         jvmArgs("-Xmx8196m")
+        autoReloadPlugins.set(true)
+    }
+
+    buildSearchableOptions{
+        enabled = false
     }
 
     patchPluginXml {
