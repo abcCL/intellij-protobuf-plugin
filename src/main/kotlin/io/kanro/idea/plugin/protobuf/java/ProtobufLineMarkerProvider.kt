@@ -144,7 +144,7 @@ class ProtobufLineMarkerProvider : RelatedItemLineMarkerProvider() {
                 if (an.qualifiedName.equals(grpcService)) {
                     val extendsList = psiClass.extendsListTypes
                     for (psiClassType in extendsList) {
-                        if (baseName.endsWith(psiClassType.className)) {
+                        if (baseName.endsWith(psiClassType.canonicalText)) {
                             return listOf<PsiClass>(psiClass)
                         }
                     }
